@@ -55,6 +55,15 @@ export function UsersPage() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => usersApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast('success', t('common.success'));
+    },
+    onError: () => toast('error', t('common.error')),
+  });
+
   const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
     defaultValues: { role: Role.ADMIN },
@@ -75,6 +84,9 @@ export function UsersPage() {
             {t('users.deactivate')}
           </button>
         )}
+        <button onClick={(e) => { e.stopPropagation(); if (window.confirm(t('common.confirmDelete'))) deleteMutation.mutate(item.id); }} className="text-xs text-error hover:underline">
+          {t('common.delete')}
+        </button>
       </div>
     )},
   ];

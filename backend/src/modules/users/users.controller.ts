@@ -67,6 +67,20 @@ export async function resetPassword(req: Request, res: Response, next: NextFunct
   }
 }
 
+export async function deleteUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    await logAudit(req, {
+      action: AuditAction.USER_DELETED,
+      entity: 'user',
+      entityId: req.params.id as string,
+    });
+    await usersService.deleteUser(req.params.id as string);
+    res.json({ message: 'User deleted' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const user = await usersService.getUserById(req.params.id as string);

@@ -96,3 +96,49 @@ export interface ApiError {
   code?: string;
   details?: unknown;
 }
+
+export interface ClientSummary {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  createdAt: string;
+  totalProposals: number;
+  totalSlots: number;
+  filledSlots: number;
+  progressPercent: number;
+  lastAccessAt: string | null;
+}
+
+export interface ClientDetailProposal {
+  accessId: string;
+  proposal: string;
+  game: string;
+  hotel: string;
+  captureStatus: string;
+  totalSlots: number;
+  filledSlots: number;
+  progressPercent: number;
+  deadline: string | null;
+  dispatchedAt: string | null;
+  seller: string;
+}
+
+export interface ClientDetail {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  createdAt: string;
+  profilePhotoUrl: string | null;
+  proposals: ClientDetailProposal[];
+  stats: {
+    totalProposals: number;
+    totalSlots: number;
+    filledSlots: number;
+    progressPercent: number;
+    completedProposals: number;
+    inProgressProposals: number;
+    pendingProposals: number;
+  };
+}

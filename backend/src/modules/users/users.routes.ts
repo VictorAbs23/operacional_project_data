@@ -16,5 +16,6 @@ router.post('/', validate(createUserSchema), usersController.create);
 router.patch('/:id', validate(updateUserSchema), usersController.update);
 router.post('/:id/deactivate', usersController.deactivate);
 router.post('/:id/reset-password', usersController.resetPassword);
+router.delete('/:id', usersController.deleteUser);
 
 export default router;

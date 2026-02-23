@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useLanguageStore } from '../../stores/languageStore';
-import { LayoutDashboard, FileText, RefreshCw, Download, Users, Shield, X } from 'lucide-react';
+import { LayoutDashboard, FileText, RefreshCw, Download, Users, UserCheck, Shield, X } from 'lucide-react';
 
 interface SidebarProps {
   open: boolean;
@@ -16,6 +16,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const links = [
     { to: '/admin', icon: LayoutDashboard, label: t('nav.dashboard'), end: true },
     { to: '/admin/proposals', icon: FileText, label: t('nav.proposals') },
+    { to: '/admin/clients', icon: UserCheck, label: t('nav.clients') },
     { to: '/admin/sync', icon: RefreshCw, label: t('nav.sync') },
     { to: '/admin/exports', icon: Download, label: t('nav.exports') },
     ...(isMaster ? [

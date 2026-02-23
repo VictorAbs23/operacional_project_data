@@ -16,6 +16,7 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import proposalsRoutes from './modules/proposals/proposals.routes.js';
 import exportsRoutes from './modules/exports/exports.routes.js';
 import auditRoutes from './modules/audit/audit.routes.js';
+import clientsRoutes from './modules/clients/clients.routes.js';
 
 const app = express();
 
@@ -57,6 +58,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/proposals', proposalsRoutes);
 app.use('/api/exports', exportsRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/clients', clientsRoutes);
 
 // Error handler
 app.use(errorHandler);

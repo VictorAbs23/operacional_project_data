@@ -23,6 +23,7 @@ export const ptBR: Record<string, string> = {
   'nav.exports': 'Exportacoes',
   'nav.users': 'Usuarios',
   'nav.audit': 'Log de Auditoria',
+  'nav.clients': 'Clientes',
   'nav.settings': 'Configuracoes',
 
   // Dashboard
@@ -73,6 +74,28 @@ export const ptBR: Record<string, string> = {
   'users.tempPasswordShare': 'Compartilhe esta senha temporaria com o usuario:',
   'users.tempPasswordNote': 'O usuario sera obrigado a alterar a senha no primeiro login.',
 
+  // Clients (Admin)
+  'clients.title': 'Gestao de Clientes',
+  'clients.search': 'Buscar por nome ou e-mail',
+  'clients.name': 'Nome',
+  'clients.email': 'E-mail',
+  'clients.proposals': 'Propostas',
+  'clients.forms': 'Fichas',
+  'clients.progress': 'Progresso',
+  'clients.active': 'Ativo',
+  'clients.inactive': 'Inativo',
+  'clients.resetPassword': 'Resetar senha',
+  'clients.deactivate': 'Desativar',
+  'clients.detail.title': 'Perfil do Cliente',
+  'clients.detail.since': 'Cliente desde',
+  'clients.detail.totalProposals': 'Total de Propostas',
+  'clients.detail.filledSlots': 'Fichas Preenchidas',
+  'clients.detail.globalProgress': 'Progresso Global',
+  'clients.detail.completedProposals': 'Propostas Concluidas',
+  'clients.detail.proposalsTable': 'Propostas do Cliente',
+  'clients.detail.seller': 'Vendedor',
+  'clients.detail.deadline': 'Prazo',
+
   // Client Portal
   'client.dashboard.title': 'Suas propostas',
   'client.dashboard.subtitle': 'Preencha os dados dos passageiros de cada proposta',
@@ -122,6 +145,7 @@ export const ptBR: Record<string, string> = {
   'common.save': 'Salvar',
   'common.cancel': 'Cancelar',
   'common.delete': 'Excluir',
+  'common.confirmDelete': 'Tem certeza que deseja excluir? Esta acao nao pode ser desfeita.',
   'common.edit': 'Editar',
   'common.close': 'Fechar',
   'common.loading': 'Carregando...',

@@ -13,6 +13,8 @@ import { AuditLogPage } from './pages/master/AuditLogPage';
 import { ExportsPage } from './pages/admin/ExportsPage';
 import { ProposalDetailPage } from './pages/admin/ProposalDetailPage';
 import { DataMatrixPage } from './pages/admin/DataMatrixPage';
+import { ClientsPage } from './pages/admin/ClientsPage';
+import { ClientDetailPage } from './pages/admin/ClientDetailPage';
 import { ClientDashboard } from './pages/client/ClientDashboard';
 import { ProposalFormPage } from './pages/client/ProposalFormPage';
 import { PassengerFormPage } from './pages/client/PassengerFormPage';
@@ -39,6 +41,8 @@ export function AppRouter() {
         <Route path="proposals" element={<ProposalsPage />} />
         <Route path="proposals/:id" element={<ProposalDetailPage />} />
         <Route path="proposals/:id/matrix" element={<DataMatrixPage />} />
+        <Route path="clients" element={<ClientsPage />} />
+        <Route path="clients/:id" element={<ClientDetailPage />} />
         <Route path="sync" element={<SyncPage />} />
         <Route path="exports" element={<ExportsPage />} />
         <Route path="users" element={<UsersPage />} />

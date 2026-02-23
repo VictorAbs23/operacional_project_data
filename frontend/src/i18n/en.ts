@@ -23,6 +23,7 @@ export const en: Record<string, string> = {
   'nav.exports': 'Exports',
   'nav.users': 'Users',
   'nav.audit': 'Audit Log',
+  'nav.clients': 'Clients',
   'nav.settings': 'Settings',
 
   // Dashboard
@@ -73,6 +74,28 @@ export const en: Record<string, string> = {
   'users.tempPasswordShare': 'Share this temporary password with the user:',
   'users.tempPasswordNote': 'The user will be required to change it on first login.',
 
+  // Clients (Admin)
+  'clients.title': 'Client Management',
+  'clients.search': 'Search by name or email',
+  'clients.name': 'Name',
+  'clients.email': 'Email',
+  'clients.proposals': 'Proposals',
+  'clients.forms': 'Forms',
+  'clients.progress': 'Progress',
+  'clients.active': 'Active',
+  'clients.inactive': 'Inactive',
+  'clients.resetPassword': 'Reset password',
+  'clients.deactivate': 'Deactivate',
+  'clients.detail.title': 'Client Profile',
+  'clients.detail.since': 'Client since',
+  'clients.detail.totalProposals': 'Total Proposals',
+  'clients.detail.filledSlots': 'Filled Forms',
+  'clients.detail.globalProgress': 'Global Progress',
+  'clients.detail.completedProposals': 'Completed Proposals',
+  'clients.detail.proposalsTable': 'Client Proposals',
+  'clients.detail.seller': 'Seller',
+  'clients.detail.deadline': 'Deadline',
+
   // Client Portal
   'client.dashboard.title': 'Your proposals',
   'client.dashboard.subtitle': 'Fill in the passenger data for each proposal',
@@ -122,6 +145,7 @@ export const en: Record<string, string> = {
   'common.save': 'Save',
   'common.cancel': 'Cancel',
   'common.delete': 'Delete',
+  'common.confirmDelete': 'Are you sure you want to delete? This action cannot be undone.',
   'common.edit': 'Edit',
   'common.close': 'Close',
   'common.loading': 'Loading...',

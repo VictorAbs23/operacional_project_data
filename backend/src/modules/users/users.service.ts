@@ -118,6 +118,21 @@ export async function resetPassword(id: string): Promise<string> {
   return tempPassword;
 }
 
+export async function deleteUser(id: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  await prisma.$transaction([
+    prisma.auditLog.updateMany({
+      where: { userId: id },
+      data: { userId: null },
+    }),
+    prisma.user.delete({ where: { id } }),
+  ]);
+}
+
 export async function getUserById(id: string): Promise<AuthUser> {
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user) {

@@ -10,4 +10,5 @@ export const usersApi = {
   update: (id: string, data: UpdateUserInput) => api.patch<AuthUser>(`/users/${id}`, data).then((r) => r.data),
   deactivate: (id: string) => api.post(`/users/${id}/deactivate`).then((r) => r.data),
   resetPassword: (id: string) => api.post<{ tempPassword: string }>(`/users/${id}/reset-password`).then((r) => r.data),
+  delete: (id: string) => api.delete(`/users/${id}`).then((r) => r.data),
 };
