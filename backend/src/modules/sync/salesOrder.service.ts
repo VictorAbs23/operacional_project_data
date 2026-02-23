@@ -27,19 +27,11 @@ export async function upsertSalesOrders(rows: SalesOrderRow[]): Promise<UpsertRe
     return { rowsUpserted, rowsSkipped, rowsErrored };
   }
 
-  // BATCH: Fetch all existing hashes in a single query
-  const uniqueKeys = validRows.map((r) => ({
-    proposal: r.proposal,
-    lineNumber: r.lineNumber,
-  }));
+  // BATCH: Fetch existing hashes using indexed `proposal IN (...)` instead of 1999 OR conditions
+  const distinctProposals = [...new Set(validRows.map((r) => r.proposal))];
 
   const existingRecords = await prisma.salesOrder.findMany({
-    where: {
-      OR: uniqueKeys.map((k) => ({
-        proposal: k.proposal,
-        lineNumber: k.lineNumber,
-      })),
-    },
+    where: { proposal: { in: distinctProposals } },
     select: { proposal: true, lineNumber: true, rawHash: true },
   });
 

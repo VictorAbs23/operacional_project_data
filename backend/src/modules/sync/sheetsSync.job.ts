@@ -8,6 +8,21 @@ import { AuditAction, CaptureStatus } from '@absolutsport/shared';
 
 let isRunning = false;
 let syncStartedAt: number = 0;
+
+/** Retry a fn up to `retries` times on transient DB errors (P1001, P1002, P2024). */
+async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      const isTransient = ['P1001', 'P1002', 'P2024'].includes(err?.code);
+      if (!isTransient || attempt >= retries) throw err;
+      const delay = 1000 * (attempt + 1);
+      logger.warn(`Transient DB error (${err.code}), retrying in ${delay}ms... (attempt ${attempt + 1}/${retries})`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+}
 const SYNC_TIMEOUT_MS = 5 * 60 * 1000; // 5 min safety timeout
 
 export async function runSync(): Promise<{ rowsRead: number; rowsUpserted: number; rowsSkipped: number; rowsErrored: number } | null> {
@@ -25,10 +40,10 @@ export async function runSync(): Promise<{ rowsRead: number; rowsUpserted: numbe
   isRunning = true;
   syncStartedAt = Date.now();
 
-  // Create sync log entry
-  const syncLog = await prisma.syncLog.create({
-    data: { status: 'RUNNING' },
-  });
+  // Create sync log entry (with retry for transient DB errors)
+  const syncLog = await withRetry(() =>
+    prisma.syncLog.create({ data: { status: 'RUNNING' } }),
+  );
 
   // Audit: SYNC_STARTED
   try {
@@ -51,8 +66,8 @@ export async function runSync(): Promise<{ rowsRead: number; rowsUpserted: numbe
 
     const mappedRows = rawRows.map((row, i) => mapRowToSalesOrder(row, i + 1));
 
-    // Upsert into database (batched, with per-row error handling)
-    const { rowsUpserted, rowsSkipped, rowsErrored } = await upsertSalesOrders(mappedRows);
+    // Upsert into database (batched, with per-row error handling + retry on transient errors)
+    const { rowsUpserted, rowsSkipped, rowsErrored } = await withRetry(() => upsertSalesOrders(mappedRows));
 
     const elapsed = Date.now() - syncStartedAt;
 
@@ -127,7 +142,7 @@ export async function expireOverdueForms(): Promise<void> {
 
     // Find all ClientProposalAccess records with a past deadline
     // whose associated FormInstance is not COMPLETED and not already EXPIRED
-    const overdueAccesses = await prisma.clientProposalAccess.findMany({
+    const overdueAccesses = await withRetry(() => prisma.clientProposalAccess.findMany({
       where: {
         deadline: { lt: now },
         formInstance: {
@@ -137,7 +152,7 @@ export async function expireOverdueForms(): Promise<void> {
         },
       },
       include: { formInstance: true },
-    });
+    }));
 
     for (const access of overdueAccesses) {
       if (!access.formInstance) continue;
@@ -161,11 +176,19 @@ export async function expireOverdueForms(): Promise<void> {
 }
 
 export function startSyncJob() {
-  // Run every 5 minutes
-  cron.schedule('*/5 * * * *', () => {
+  // Run every 5 minutes — expire runs AFTER sync to avoid competing for DB connections
+  cron.schedule('*/5 * * * *', async () => {
     logger.debug('Cron trigger: starting sync...');
-    runSync().catch((err) => logger.error('Cron sync error', { error: err }));
-    expireOverdueForms().catch((err) => logger.error('Cron expire error', { error: err }));
+    try {
+      await runSync();
+    } catch (err) {
+      logger.error('Cron sync error', { error: err });
+    }
+    try {
+      await expireOverdueForms();
+    } catch (err) {
+      logger.error('Cron expire error', { error: err });
+    }
   });
 
   logger.info('Sheets sync cron job scheduled (every 5 minutes)');
