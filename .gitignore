@@ -147,5 +147,8 @@ backend/prisma/*.db
 dist/
 *.tsbuildinfo
 
+# Credentials
+credentials.json
+
 # Claude Code
 .claude/
