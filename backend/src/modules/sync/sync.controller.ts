@@ -8,10 +8,18 @@ export async function triggerSync(req: Request, res: Response, next: NextFunctio
   try {
     await logAudit(req, { action: AuditAction.SYNC_STARTED });
 
-    // Run sync in background, respond immediately
-    runSync().catch(() => {});
+    // Run sync and WAIT for result so the user gets feedback
+    const result = await runSync();
 
-    res.json({ message: 'Sync triggered' });
+    if (result === null) {
+      res.status(409).json({ message: 'Sync already running or failed. Check logs.' });
+      return;
+    }
+
+    res.json({
+      message: 'Sync completed',
+      ...result,
+    });
   } catch (err) {
     next(err);
   }
@@ -19,8 +27,8 @@ export async function triggerSync(req: Request, res: Response, next: NextFunctio
 
 export async function getSyncLogs(req: Request, res: Response, next: NextFunction) {
   try {
-    const page = Number(req.query.page) || 1;
-    const pageSize = Number(req.query.pageSize) || 20;
+    const page = Math.max(1, Math.floor(Number(req.query.page) || 1));
+    const pageSize = Math.min(100, Math.max(1, Math.floor(Number(req.query.pageSize) || 20)));
     const skip = (page - 1) * pageSize;
 
     const [logs, total] = await Promise.all([

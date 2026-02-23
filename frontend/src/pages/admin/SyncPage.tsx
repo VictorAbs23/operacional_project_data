@@ -22,9 +22,14 @@ export function SyncPage() {
 
   const syncMutation = useMutation({
     mutationFn: syncApi.triggerSync,
-    onSuccess: () => {
-      toast('success', t('sync.triggered'));
+    onSuccess: (data: any) => {
+      const msg = data?.rowsUpserted != null
+        ? `${t('sync.triggered')} — ${data.rowsRead} ${t('sync.rowsRead').toLowerCase()}, ${data.rowsUpserted} ${t('sync.rowsUpserted').toLowerCase()}`
+        : t('sync.triggered');
+      toast('success', msg);
       queryClient.invalidateQueries({ queryKey: ['sync-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['proposals'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
     },
     onError: () => toast('error', t('sync.failed')),
   });
@@ -32,7 +37,7 @@ export function SyncPage() {
   const columns = [
     { key: 'startedAt', header: t('sync.lastSync'), render: (item: any) => dayjs(item.startedAt).format('DD/MM/YYYY HH:mm:ss') },
     { key: 'status', header: t('sync.status'), render: (item: any) => (
-      <Badge variant={item.status === 'SUCCESS' ? 'completed' : item.status === 'ERROR' ? 'expired' : 'inProgress'}>
+      <Badge variant={item.status === 'SUCCESS' ? 'completed' : item.status === 'ERROR' ? 'expired' : item.status === 'PARTIAL' ? 'inProgress' : 'inProgress'}>
         {item.status}
       </Badge>
     )},

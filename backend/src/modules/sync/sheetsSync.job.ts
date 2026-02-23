@@ -7,14 +7,23 @@ import { upsertSalesOrders } from './salesOrder.service.js';
 import { AuditAction, CaptureStatus } from '@absolutsport/shared';
 
 let isRunning = false;
+let syncStartedAt: number = 0;
+const SYNC_TIMEOUT_MS = 5 * 60 * 1000; // 5 min safety timeout
 
-export async function runSync(): Promise<void> {
+export async function runSync(): Promise<{ rowsRead: number; rowsUpserted: number; rowsSkipped: number; rowsErrored: number } | null> {
+  // Safety: reset isRunning if stuck for more than 5 minutes
+  if (isRunning && Date.now() - syncStartedAt > SYNC_TIMEOUT_MS) {
+    logger.warn('Sync appears stuck (>5 min), resetting isRunning flag');
+    isRunning = false;
+  }
+
   if (isRunning) {
     logger.warn('Sync already running, skipping...');
-    return;
+    return null;
   }
 
   isRunning = true;
+  syncStartedAt = Date.now();
 
   // Create sync log entry
   const syncLog = await prisma.syncLog.create({
@@ -38,16 +47,20 @@ export async function runSync(): Promise<void> {
   try {
     // Fetch data from Google Sheets
     const rawRows = await fetchSalesLog();
+    logger.info(`Fetched ${rawRows.length} rows from Google Sheets`);
+
     const mappedRows = rawRows.map((row, i) => mapRowToSalesOrder(row, i + 1));
 
-    // Upsert into database
-    const { rowsUpserted, rowsSkipped } = await upsertSalesOrders(mappedRows);
+    // Upsert into database (batched, with per-row error handling)
+    const { rowsUpserted, rowsSkipped, rowsErrored } = await upsertSalesOrders(mappedRows);
+
+    const elapsed = Date.now() - syncStartedAt;
 
     // Update sync log with success
     await prisma.syncLog.update({
       where: { id: syncLog.id },
       data: {
-        status: 'SUCCESS',
+        status: rowsErrored > 0 ? 'PARTIAL' : 'SUCCESS',
         finishedAt: new Date(),
         rowsRead: rawRows.length,
         rowsUpserted,
@@ -62,14 +75,16 @@ export async function runSync(): Promise<void> {
           action: AuditAction.SYNC_COMPLETED,
           entity: 'syncLog',
           entityId: syncLog.id,
-          payload: { rowsRead: rawRows.length, rowsUpserted, rowsSkipped },
+          payload: { rowsRead: rawRows.length, rowsUpserted, rowsSkipped, rowsErrored, elapsedMs: elapsed },
         },
       });
     } catch (auditErr) {
       logger.error('Failed to write SYNC_COMPLETED audit log', { error: auditErr });
     }
 
-    logger.info(`Sync completed: ${rawRows.length} read, ${rowsUpserted} upserted, ${rowsSkipped} skipped`);
+    logger.info(`Sync completed in ${elapsed}ms: ${rawRows.length} read, ${rowsUpserted} upserted, ${rowsSkipped} skipped, ${rowsErrored} errored`);
+
+    return { rowsRead: rawRows.length, rowsUpserted, rowsSkipped, rowsErrored };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     logger.error('Sync failed', { error: errorMessage });
@@ -96,6 +111,8 @@ export async function runSync(): Promise<void> {
     } catch (auditErr) {
       logger.error('Failed to write SYNC_FAILED audit log', { error: auditErr });
     }
+
+    return null;
   } finally {
     isRunning = false;
   }
