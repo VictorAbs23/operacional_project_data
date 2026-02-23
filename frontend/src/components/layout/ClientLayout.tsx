@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
-import { ToastProvider } from '../ui/Toast';
 
 export function ClientLayout() {
   return (
@@ -9,7 +8,6 @@ export function ClientLayout() {
       <main className="max-w-4xl mx-auto pt-6 px-4 pb-12 animate-fade-in">
         <Outlet />
       </main>
-      <ToastProvider />
     </div>
   );
 }

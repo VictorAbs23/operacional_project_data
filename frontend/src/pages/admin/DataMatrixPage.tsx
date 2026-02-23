@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguageStore } from '../../stores/languageStore';
@@ -46,6 +46,8 @@ const PASSENGER_COLS = [
 function EditableCell({ value, onSave, saving }: { value: string; onSave: (val: string) => void; saving: boolean }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+
+  useEffect(() => { setDraft(value); }, [value]);
 
   const handleSave = () => {
     onSave(draft);

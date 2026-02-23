@@ -12,6 +12,7 @@ export function LanguageToggle() {
     <button
       onClick={toggle}
       className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 transition-colors text-neutral-600"
+      aria-label="Toggle language"
     >
       <span className={language === 'pt-BR' ? 'text-primary-600' : 'text-neutral-400'}>PT</span>
       <span className="text-neutral-300">|</span>

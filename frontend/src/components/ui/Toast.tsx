@@ -19,16 +19,21 @@ export function toast(type: ToastType, message: string) {
 export function ToastProvider() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
+  const addToast = (type: ToastType, message: string) => {
+    const id = Date.now().toString();
+    setToasts((prev) => [...prev, { id, type, message }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
+
   useEffect(() => {
-    addToastFn = (type, message) => {
-      const id = Date.now().toString();
-      setToasts((prev) => [...prev, { id, type, message }]);
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, 4000);
+    const fn = addToast;
+    addToastFn = fn;
+    return () => {
+      if (addToastFn === fn) addToastFn = null;
     };
-    return () => { addToastFn = null; };
-  }, []);
+  });
 
   const icons = {
     success: <CheckCircle className="h-5 w-5 text-accent-500" />,

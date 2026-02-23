@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguageStore } from '../../stores/languageStore';
@@ -33,6 +33,18 @@ export function ProposalDetailPage() {
   const [dispatchInfo, setDispatchInfo] = useState<DispatchResult | null>(null);
   const [copied, setCopied] = useState<'link' | 'email' | 'password' | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!exportOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setExportOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [exportOpen]);
 
   const { data: proposal, isLoading } = useQuery({
     queryKey: ['proposal', id],
@@ -211,7 +223,7 @@ export function ProposalDetailPage() {
         <Button variant="outline" onClick={() => navigate(`/admin/proposals/${id}/matrix`)}>
           <Grid3X3 className="h-4 w-4 mr-2" /> {t('proposals.dataMatrix')}
         </Button>
-        <div className="relative">
+        <div className="relative" ref={exportRef}>
           <Button variant="outline" onClick={() => setExportOpen(!exportOpen)}>
             <Download className="h-4 w-4 mr-2" /> {t('proposals.exportCsv')}
           </Button>

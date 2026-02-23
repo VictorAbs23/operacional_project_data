@@ -58,9 +58,17 @@ export interface AdminFieldsUpdate {
   transfer_reference?: string;
 }
 
+export interface ProposalFilterOptions {
+  games: string[];
+  hotels: string[];
+  sellers: string[];
+}
+
 export const proposalsApi = {
   list: (filters: ProposalFilters = {}) =>
     api.get<PaginatedResponse<ProposalSummary>>('/proposals', { params: filters }).then((r) => r.data),
+  filterOptions: () =>
+    api.get<ProposalFilterOptions>('/proposals/filter-options').then((r) => r.data),
   getById: (id: string) => api.get<ProposalSummary>(`/proposals/${id}`).then((r) => r.data),
   dispatch: (proposal: string, mode: 'EMAIL' | 'MANUAL_LINK', deadline?: string) =>
     api.post('/captures/dispatch', { proposal, mode, deadline }).then((r) => r.data),

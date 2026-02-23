@@ -17,6 +17,7 @@ import proposalsRoutes from './modules/proposals/proposals.routes.js';
 import exportsRoutes from './modules/exports/exports.routes.js';
 import auditRoutes from './modules/audit/audit.routes.js';
 import clientsRoutes from './modules/clients/clients.routes.js';
+import { requirePasswordChange } from './middleware/requirePasswordChange.js';
 
 const app = express();
 
@@ -49,16 +50,16 @@ app.get('/api/health', (_req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/sync', syncRoutes);
-app.use('/api/forms', formsRoutes);
-app.use('/api/captures', capturesRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/proposals', proposalsRoutes);
-app.use('/api/exports', exportsRoutes);
-app.use('/api/audit', auditRoutes);
-app.use('/api/clients', clientsRoutes);
+app.use('/api/users', requirePasswordChange, usersRoutes);
+app.use('/api/upload', requirePasswordChange, uploadRoutes);
+app.use('/api/sync', requirePasswordChange, syncRoutes);
+app.use('/api/forms', requirePasswordChange, formsRoutes);
+app.use('/api/captures', requirePasswordChange, capturesRoutes);
+app.use('/api/dashboard', requirePasswordChange, dashboardRoutes);
+app.use('/api/proposals', requirePasswordChange, proposalsRoutes);
+app.use('/api/exports', requirePasswordChange, exportsRoutes);
+app.use('/api/audit', requirePasswordChange, auditRoutes);
+app.use('/api/clients', requirePasswordChange, clientsRoutes);
 
 // Error handler
 app.use(errorHandler);

@@ -8,7 +8,6 @@ import { useLanguageStore } from '../../stores/languageStore';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { toast } from '../../components/ui/Toast';
-import { ToastProvider } from '../../components/ui/Toast';
 
 export function ChangePasswordPage() {
   const navigate = useNavigate();
@@ -80,7 +79,6 @@ export function ChangePasswordPage() {
           </form>
         </div>
       </div>
-      <ToastProvider />
     </div>
   );
 }

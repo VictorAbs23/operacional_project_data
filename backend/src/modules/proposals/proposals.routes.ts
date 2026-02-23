@@ -10,6 +10,7 @@ router.use(authenticate);
 router.use(authorize(Role.ADMIN));
 
 router.get('/', proposalsController.list);
+router.get('/filter-options', proposalsController.filterOptions);
 router.get('/:id/matrix', proposalsController.getMatrix);
 router.get('/:id', proposalsController.getById);
 router.patch('/:proposalId/slots/:slotId/admin-fields', proposalsController.updateAdminFields);

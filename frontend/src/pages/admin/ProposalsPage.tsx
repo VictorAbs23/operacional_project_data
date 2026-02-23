@@ -7,7 +7,7 @@ import { Table } from '../../components/ui/Table';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { Spinner } from '../../components/ui/Spinner';
-import { Search, X } from 'lucide-react';
+import { Search, X, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const STATUS_OPTIONS = [
@@ -24,7 +24,18 @@ export function ProposalsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['proposals', filters],
-    queryFn: () => proposalsApi.list(filters),
+    queryFn: () => {
+      const cleanFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, v]) => v !== '' && v !== undefined)
+      );
+      return proposalsApi.list(cleanFilters);
+    },
+  });
+
+  const { data: filterOptions } = useQuery({
+    queryKey: ['proposals-filter-options'],
+    queryFn: () => proposalsApi.filterOptions(),
+    staleTime: 5 * 60 * 1000,
   });
 
   const toggleStatus = (value: string) => {
@@ -87,6 +98,49 @@ export function ProposalsPage() {
           onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
           className="input-base pl-10"
         />
+      </div>
+
+      {/* Filter dropdowns */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div className="relative">
+          <select
+            value={filters.game}
+            onChange={(e) => setFilters({ ...filters, game: e.target.value, page: 1 })}
+            className="input-base w-full appearance-none pr-8 text-sm"
+          >
+            <option value="">{t('proposals.allGames')}</option>
+            {filterOptions?.games.map((g) => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+        </div>
+        <div className="relative">
+          <select
+            value={filters.hotel}
+            onChange={(e) => setFilters({ ...filters, hotel: e.target.value, page: 1 })}
+            className="input-base w-full appearance-none pr-8 text-sm"
+          >
+            <option value="">{t('proposals.allHotels')}</option>
+            {filterOptions?.hotels.map((h) => (
+              <option key={h} value={h}>{h}</option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+        </div>
+        <div className="relative">
+          <select
+            value={filters.seller}
+            onChange={(e) => setFilters({ ...filters, seller: e.target.value, page: 1 })}
+            className="input-base w-full appearance-none pr-8 text-sm"
+          >
+            <option value="">{t('proposals.allSellers')}</option>
+            {filterOptions?.sellers.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+        </div>
       </div>
 
       {/* Status filter chips */}

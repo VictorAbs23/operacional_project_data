@@ -1,4 +1,5 @@
 import { prisma } from '../../config/database.js';
+import { AppError } from '../../middleware/errorHandler.js';
 import type { SalesOrder } from '@prisma/client';
 import dayjs from 'dayjs';
 
@@ -41,7 +42,7 @@ export async function generateExport(
     case 'global_export':
       return generateGlobalExport(date);
     default:
-      throw new Error(`Unknown export type: ${type}`);
+      throw new AppError(`Unknown export type: ${type}`, 400);
   }
 }
 

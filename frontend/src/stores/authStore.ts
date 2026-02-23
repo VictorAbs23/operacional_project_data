@@ -9,6 +9,7 @@ interface AuthState {
   updateUser: (user: AuthUser) => void;
   logout: () => void;
   isAuthenticated: () => boolean;
+  validateSession: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -18,8 +19,31 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       setAuth: (token, user) => set({ token, user }),
       updateUser: (user) => set({ user }),
-      logout: () => set({ token: null, user: null }),
+      logout: () => {
+        const token = get().token;
+        if (token) {
+          fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+          }).catch(() => {});
+        }
+        set({ token: null, user: null });
+      },
       isAuthenticated: () => !!get().token && !!get().user,
+      validateSession: async () => {
+        const token = get().token;
+        if (!token) return;
+        try {
+          const res = await fetch('/api/auth/me', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) {
+            set({ token: null, user: null });
+          }
+        } catch {
+          set({ token: null, user: null });
+        }
+      },
     }),
     {
       name: 'absolutsport-auth',

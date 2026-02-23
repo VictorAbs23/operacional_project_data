@@ -50,6 +50,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           onClick={handleLogout}
           className="p-2 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-neutral-600 transition-colors"
           title={t('auth.logout')}
+          aria-label="Logout"
         >
           <LogOut className="h-4 w-4" />
         </button>

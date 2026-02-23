@@ -73,7 +73,7 @@ export function UsersPage() {
     { key: 'name', header: t('users.name') },
     { key: 'email', header: t('users.email'), className: 'font-mono text-sm' },
     { key: 'role', header: t('users.role'), render: (item: any) => <Badge variant={item.role === 'MASTER' ? 'info' : 'active'}>{item.role}</Badge> },
-    { key: 'isActive', header: t('users.active'), render: (item: any) => <Badge variant={item.isActive ? 'completed' : 'expired'}>{item.isActive ? 'Yes' : 'No'}</Badge> },
+    { key: 'isActive', header: t('users.active'), render: (item: any) => <Badge variant={item.isActive ? 'completed' : 'expired'}>{item.isActive ? t('common.yes') : t('common.no')}</Badge> },
     { key: 'actions', header: '', render: (item: any) => (
       <div className="flex gap-2">
         <button onClick={(e) => { e.stopPropagation(); resetMutation.mutate(item.id); }} className="text-xs text-primary-500 hover:underline">

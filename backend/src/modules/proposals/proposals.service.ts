@@ -12,11 +12,9 @@ interface ProposalFilters {
 }
 
 export async function listProposals(filters: ProposalFilters): Promise<PaginatedResponse<ProposalSummary>> {
-  const page = filters.page || 1;
-  const pageSize = filters.pageSize || 20;
-  const skip = (page - 1) * pageSize;
+  const page = Math.max(1, Math.floor(filters.page || 1));
+  const pageSize = Math.min(100, Math.max(1, Math.floor(filters.pageSize || 20)));
 
-  // Get unique proposals from sales_orders
   const where: Record<string, unknown> = {};
   if (filters.game) where.game = filters.game;
   if (filters.hotel) where.hotel = filters.hotel;
@@ -29,37 +27,43 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
     ];
   }
 
-  // Get distinct proposals
-  const proposals = await prisma.salesOrder.findMany({
+  // Query 1: Fetch all distinct proposals matching filters
+  const allProposals = await prisma.salesOrder.findMany({
     where: where as any,
     distinct: ['proposal'],
     orderBy: { createdAt: 'desc' },
-    skip,
-    take: pageSize,
   });
 
-  const totalOrders = await prisma.salesOrder.groupBy({
-    by: ['proposal'],
-    where: where as any,
-  });
+  const proposalCodes = allProposals.map((o) => o.proposal);
 
-  const results: ProposalSummary[] = [];
+  // Query 2: Batch fetch ALL accesses + form instances in a single query
+  const allAccesses = proposalCodes.length > 0
+    ? await prisma.clientProposalAccess.findMany({
+        where: { proposal: { in: proposalCodes } },
+        include: { formInstance: true },
+        orderBy: { dispatchedAt: 'desc' },
+      })
+    : [];
 
-  for (const order of proposals) {
-    // Get form instance for this proposal
-    const access = await prisma.clientProposalAccess.findFirst({
-      where: { proposal: order.proposal },
-      include: { formInstance: true },
-      orderBy: { dispatchedAt: 'desc' },
-    });
+  // Build a Map: proposal code -> most recent access (first in desc order)
+  const accessMap = new Map<string, typeof allAccesses[number]>();
+  for (const access of allAccesses) {
+    if (!accessMap.has(access.proposal)) {
+      accessMap.set(access.proposal, access);
+    }
+  }
 
+  // Assemble results in memory (no more N+1)
+  const allResults: ProposalSummary[] = [];
+
+  for (const order of allProposals) {
+    const access = accessMap.get(order.proposal);
     const fi = access?.formInstance;
     const captureStatus = fi?.captureStatus || 'NOT_DISPATCHED';
 
-    // Apply capture status filter
     if (filters.status && captureStatus !== filters.status) continue;
 
-    results.push({
+    allResults.push({
       id: order.id,
       proposal: order.proposal,
       clientName: order.clientName,
@@ -78,12 +82,16 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
     });
   }
 
+  const total = allResults.length;
+  const skip = (page - 1) * pageSize;
+  const paginatedData = allResults.slice(skip, skip + pageSize);
+
   return {
-    data: results,
-    total: totalOrders.length,
+    data: paginatedData,
+    total,
     page,
     pageSize,
-    totalPages: Math.ceil(totalOrders.length / pageSize),
+    totalPages: Math.ceil(total / pageSize),
   };
 }
 
@@ -128,17 +136,14 @@ export interface MatrixRow {
 }
 
 export async function getProposalMatrix(id: string): Promise<MatrixRow[]> {
-  // 1. Find the SalesOrder by id
   const order = await prisma.salesOrder.findUnique({ where: { id } });
   if (!order) return [];
 
-  // 2. Get all sales orders for this proposal
   const salesOrders = await prisma.salesOrder.findMany({
     where: { proposal: order.proposal },
     orderBy: { lineNumber: 'asc' },
   });
 
-  // 3. Find the ClientProposalAccess for this proposal
   const access = await prisma.clientProposalAccess.findFirst({
     where: { proposal: order.proposal },
     include: {
@@ -155,31 +160,29 @@ export async function getProposalMatrix(id: string): Promise<MatrixRow[]> {
   });
 
   const slots = access?.formInstance?.passengerSlots ?? [];
-
   const rows: MatrixRow[] = [];
-
-  // Use the first sales order for shared fields (or iterate if multiple)
-  const baseOrder = salesOrders[0] ?? order;
 
   for (const slot of slots) {
     const answers = (slot.response?.answers ?? {}) as Record<string, string>;
 
+    const matchedOrder = salesOrders.find(so =>
+      slot.roomLabel.includes(so.hotel) || slot.roomLabel.includes(so.roomType)
+    ) || salesOrders[0] || order;
+
     rows.push({
-      // Sales Log (blue) fields
-      proposal: baseOrder.proposal,
-      clientName: baseOrder.clientName,
-      clientEmail: baseOrder.clientEmail,
-      game: baseOrder.game,
-      hotel: baseOrder.hotel,
-      roomType: baseOrder.roomType,
-      checkIn: baseOrder.checkIn,
-      checkOut: baseOrder.checkOut,
-      ticketCategory: baseOrder.ticketCategory,
-      seller: baseOrder.seller,
-      status: baseOrder.status,
-      numberOfRooms: baseOrder.numberOfRooms,
-      numberOfPax: baseOrder.numberOfPax,
-      // Passenger (green) fields
+      proposal: matchedOrder.proposal,
+      clientName: matchedOrder.clientName,
+      clientEmail: matchedOrder.clientEmail,
+      game: matchedOrder.game,
+      hotel: matchedOrder.hotel,
+      roomType: matchedOrder.roomType,
+      checkIn: matchedOrder.checkIn,
+      checkOut: matchedOrder.checkOut,
+      ticketCategory: matchedOrder.ticketCategory,
+      seller: matchedOrder.seller,
+      status: matchedOrder.status,
+      numberOfRooms: matchedOrder.numberOfRooms,
+      numberOfPax: matchedOrder.numberOfPax,
       roomLabel: slot.roomLabel,
       slotIndex: slot.slotIndex,
       passengerName: answers.full_name || null,
@@ -193,19 +196,30 @@ export async function getProposalMatrix(id: string): Promise<MatrixRow[]> {
       fanTeam: answers.fan_team || null,
       phone: answers.phone || null,
       email: answers.email || null,
-      // Admin (yellow) fields
       ticketStatus: answers.ticket_status || null,
       hotelConfirmation: answers.hotel_confirmation_number || null,
       flightLocator: answers.flight_locator || null,
       insuranceNumber: answers.insurance_number || null,
       transferReference: answers.transfer_reference || null,
-      // Slot metadata
       slotId: slot.id,
       slotStatus: slot.status,
     });
   }
 
   return rows;
+}
+
+export async function getFilterOptions(): Promise<{ games: string[]; hotels: string[]; sellers: string[] }> {
+  const orders = await prisma.salesOrder.findMany({
+    distinct: ['proposal'],
+    select: { game: true, hotel: true, seller: true },
+  });
+
+  const games = [...new Set(orders.map((o) => o.game).filter(Boolean))].sort();
+  const hotels = [...new Set(orders.map((o) => o.hotel).filter(Boolean))].sort();
+  const sellers = [...new Set(orders.map((o) => o.seller).filter(Boolean))].sort();
+
+  return { games, hotels, sellers };
 }
 
 export async function getProposalById(id: string): Promise<ProposalSummary | null> {

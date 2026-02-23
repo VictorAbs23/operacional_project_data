@@ -43,3 +43,16 @@ export async function me(req: Request, res: Response, next: NextFunction) {
     next(err);
   }
 }
+
+export async function logout(req: Request, res: Response, next: NextFunction) {
+  try {
+    await logAudit(req, {
+      action: AuditAction.LOGOUT,
+      entity: 'user',
+      entityId: req.user!.id,
+    });
+    res.json({ message: 'Logged out' });
+  } catch (err) {
+    next(err);
+  }
+}

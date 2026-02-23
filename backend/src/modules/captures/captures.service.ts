@@ -7,6 +7,7 @@ import { hashPassword } from '../../utils/hash.js';
 import { generateTempPassword } from '../../utils/token.js';
 import { generateFormInstance } from '../forms/formGenerator.service.js';
 import { AppError } from '../../middleware/errorHandler.js';
+import { AuditAction } from '@absolutsport/shared';
 
 interface DispatchResult {
   accessToken: string;
@@ -31,12 +32,16 @@ export async function dispatchCapture(
     throw new AppError('Proposal not found', 404);
   }
 
-  const firstOrder = salesOrders[0];
-
-  if (firstOrder.status !== 'CONFIRMED') {
-    throw new AppError('Proposal is not confirmed. Current status: ' + firstOrder.status, 400, 'NOT_CONFIRMED');
+  const nonConfirmed = salesOrders.filter(o => o.status !== 'CONFIRMED');
+  if (nonConfirmed.length > 0) {
+    throw new AppError(
+      `Proposal has ${nonConfirmed.length} line(s) not confirmed. All lines must be CONFIRMED to dispatch.`,
+      400,
+      'NOT_CONFIRMED',
+    );
   }
 
+  const firstOrder = salesOrders[0];
   if (!firstOrder.clientEmail) {
     throw new AppError('Client email is missing from Sales Log', 400, 'NO_EMAIL');
   }
@@ -157,8 +162,39 @@ export async function dispatchCapture(
       });
       emailSent = true;
       logger.info(`Email sent to ${firstOrder.clientEmail} for proposal ${proposal}`);
+
+      // Audit: EMAIL_SENT
+      try {
+        await prisma.auditLog.create({
+          data: {
+            userId: dispatchedBy,
+            action: AuditAction.EMAIL_SENT,
+            entity: 'clientProposalAccess',
+            entityId: accessId,
+            payload: { proposal, email: firstOrder.clientEmail },
+          },
+        });
+      } catch (auditErr) {
+        logger.error('Failed to write EMAIL_SENT audit log', { error: auditErr });
+      }
     } catch (err) {
       logger.error('Failed to send email', { error: err, proposal });
+
+      // Audit: EMAIL_FAILED
+      try {
+        await prisma.auditLog.create({
+          data: {
+            userId: dispatchedBy,
+            action: AuditAction.EMAIL_FAILED,
+            entity: 'clientProposalAccess',
+            entityId: accessId,
+            payload: { proposal, email: firstOrder.clientEmail, error: err instanceof Error ? err.message : 'Unknown error' },
+          },
+        });
+      } catch (auditErr) {
+        logger.error('Failed to write EMAIL_FAILED audit log', { error: auditErr });
+      }
+
       throw new AppError('Failed to send email. Please try again or use manual link.', 502, 'EMAIL_SEND_FAILED');
     }
   }
@@ -167,7 +203,7 @@ export async function dispatchCapture(
     accessToken,
     clientLink,
     clientEmail: firstOrder.clientEmail,
-    tempPassword,
+    tempPassword: mode === 'MANUAL_LINK' ? tempPassword : undefined,
     emailSent,
   };
 }

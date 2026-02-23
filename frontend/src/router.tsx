@@ -45,8 +45,16 @@ export function AppRouter() {
         <Route path="clients/:id" element={<ClientDetailPage />} />
         <Route path="sync" element={<SyncPage />} />
         <Route path="exports" element={<ExportsPage />} />
-        <Route path="users" element={<UsersPage />} />
-        <Route path="audit" element={<AuditLogPage />} />
+        <Route path="users" element={
+          <ProtectedRoute roles={['MASTER']}>
+            <UsersPage />
+          </ProtectedRoute>
+        } />
+        <Route path="audit" element={
+          <ProtectedRoute roles={['MASTER']}>
+            <AuditLogPage />
+          </ProtectedRoute>
+        } />
       </Route>
 
       {/* Client routes */}

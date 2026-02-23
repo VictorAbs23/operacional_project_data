@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -10,6 +11,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
+import { DropZone } from '../../components/ui/DropZone';
 import { toast } from '../../components/ui/Toast';
 import { ArrowLeft, Save, User } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -19,6 +21,8 @@ export function PassengerFormPage() {
   const navigate = useNavigate();
   const t = useLanguageStore((s) => s.t);
   const queryClient = useQueryClient();
+
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const { data: slot, isLoading } = useQuery({
     queryKey: ['passenger-slot', slotId],
@@ -106,6 +110,23 @@ export function PassengerFormPage() {
           </div>
 
           <Input label={t('passenger.fanTeam')} error={errors.fan_team?.message} {...register('fan_team')} />
+
+          {/* Document photo upload */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+              {t('passenger.photo')}
+            </label>
+            <DropZone
+              onFile={(file) => {
+                const url = URL.createObjectURL(file);
+                setPhotoPreview(url);
+              }}
+              preview={photoPreview || slot?.response?.answers?.profile_photo || null}
+              onClear={() => setPhotoPreview(null)}
+              accept={{ 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] }}
+            />
+            <input type="hidden" {...register('profile_photo')} value={photoPreview || ''} />
+          </div>
 
           <div className="pt-4 border-t border-neutral-200">
             <Button type="submit" loading={isSubmitting || saveMutation.isPending} className="w-full md:w-auto">

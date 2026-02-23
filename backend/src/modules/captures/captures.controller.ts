@@ -12,6 +12,16 @@ export async function dispatch(req: Request, res: Response, next: NextFunction) 
       return;
     }
 
+    if (mode !== 'EMAIL' && mode !== 'MANUAL_LINK') {
+      res.status(400).json({ message: 'mode must be EMAIL or MANUAL_LINK' });
+      return;
+    }
+
+    if (deadline && isNaN(new Date(deadline).getTime())) {
+      res.status(400).json({ message: 'deadline must be a valid date' });
+      return;
+    }
+
     const result = await capturesService.dispatchCapture(
       proposal,
       mode,

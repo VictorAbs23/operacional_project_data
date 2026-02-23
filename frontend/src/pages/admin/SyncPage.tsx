@@ -23,10 +23,10 @@ export function SyncPage() {
   const syncMutation = useMutation({
     mutationFn: syncApi.triggerSync,
     onSuccess: () => {
-      toast('success', 'Sync triggered');
+      toast('success', t('sync.triggered'));
       queryClient.invalidateQueries({ queryKey: ['sync-logs'] });
     },
-    onError: () => toast('error', 'Sync failed'),
+    onError: () => toast('error', t('sync.failed')),
   });
 
   const columns = [

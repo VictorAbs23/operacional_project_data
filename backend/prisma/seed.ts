@@ -8,7 +8,8 @@ async function main() {
   console.log('Seeding database...');
 
   // Seed master users
-  const passwordHash = await bcrypt.hash('Dron3120@', 12);
+  const seedPassword = process.env.SEED_PASSWORD || 'ChangeMeOnFirstLogin!1';
+  const passwordHash = await bcrypt.hash(seedPassword, 12);
 
   const masterUsers = [
     {

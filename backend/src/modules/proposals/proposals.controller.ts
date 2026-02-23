@@ -8,16 +8,25 @@ import { AppError } from '../../middleware/errorHandler.js';
 export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const filters = {
-      page: Number(req.query.page) || 1,
-      pageSize: Number(req.query.pageSize) || 20,
-      status: req.query.status as string | undefined,
-      game: req.query.game as string | undefined,
-      hotel: req.query.hotel as string | undefined,
-      seller: req.query.seller as string | undefined,
-      search: req.query.search as string | undefined,
+      page: Math.max(1, Math.floor(Number(req.query.page) || 1)),
+      pageSize: Math.min(100, Math.max(1, Math.floor(Number(req.query.pageSize) || 20))),
+      status: (req.query.status as string) || undefined,
+      game: (req.query.game as string) || undefined,
+      hotel: (req.query.hotel as string) || undefined,
+      seller: (req.query.seller as string) || undefined,
+      search: (req.query.search as string) || undefined,
     };
     const result = await proposalsService.listProposals(filters);
     res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function filterOptions(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const options = await proposalsService.getFilterOptions();
+    res.json(options);
   } catch (err) {
     next(err);
   }

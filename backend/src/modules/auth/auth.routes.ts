@@ -8,6 +8,7 @@ import { loginSchema, changePasswordSchema } from '@absolutsport/shared';
 const router = Router();
 
 router.post('/login', authLimiter, validate(loginSchema), authController.login);
+router.post('/logout', authenticate, authController.logout);
 router.post('/change-password', authenticate, validate(changePasswordSchema), authController.changePassword);
 router.get('/me', authenticate, authController.me);
 

@@ -50,6 +50,10 @@ export const en: Record<string, string> = {
   'proposals.noEmail': 'Client email missing from Sales Log',
   'proposals.notConfirmed': 'Proposal not confirmed',
   'proposals.dataMatrix': 'Data Matrix',
+  'proposals.seller': 'Seller',
+  'proposals.allGames': 'All games',
+  'proposals.allHotels': 'All hotels',
+  'proposals.allSellers': 'All sellers',
 
   // Sync
   'sync.title': 'Google Sheets Sync',
@@ -60,6 +64,8 @@ export const en: Record<string, string> = {
   'sync.rowsUpserted': 'Rows updated',
   'sync.rowsSkipped': 'Rows skipped',
   'sync.running': 'Running...',
+  'sync.triggered': 'Sync triggered',
+  'sync.failed': 'Sync failed',
 
   // Users
   'users.title': 'User Management',
@@ -161,6 +167,8 @@ export const en: Record<string, string> = {
   'common.results': 'results',
   'common.prev': 'Prev',
   'common.next': 'Next',
+  'common.yes': 'Yes',
+  'common.no': 'No',
   'common.copy': 'Copy',
   'common.copied': 'Copied!',
   'common.dropzone': 'Drag & drop or click to upload',

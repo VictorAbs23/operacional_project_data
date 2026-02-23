@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import { ToastProvider } from '../ui/Toast';
 
 export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,7 +15,6 @@ export function AdminLayout() {
           <Outlet />
         </main>
       </div>
-      <ToastProvider />
     </div>
   );
 }

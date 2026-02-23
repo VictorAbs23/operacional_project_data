@@ -7,7 +7,7 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ value, max = 100, showLabel = true, size = 'md', className = '' }: ProgressBarProps) {
-  const percent = Math.min(Math.round((value / max) * 100), 100);
+  const percent = max > 0 ? Math.min(Math.round((value / max) * 100), 100) : 0;
   const heights = { sm: 'h-1.5', md: 'h-2.5', lg: 'h-4' };
   const color = percent === 100 ? 'bg-accent-500' : percent > 0 ? 'bg-primary-500' : 'bg-neutral-300';
 

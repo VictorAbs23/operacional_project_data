@@ -7,7 +7,7 @@ import { Role } from '@absolutsport/shared';
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize(Role.MASTER));
+router.use(authorize(Role.ADMIN));
 
 router.get('/', auditController.list);
 

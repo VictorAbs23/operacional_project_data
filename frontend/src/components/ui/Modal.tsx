@@ -20,6 +20,15 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }:
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open, onClose]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -36,6 +45,8 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }:
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            role="dialog"
+            aria-modal="true"
             className={`relative bg-white rounded-xl shadow-lg ${maxWidth} w-full max-h-[90vh] overflow-y-auto`}
           >
             {title && (

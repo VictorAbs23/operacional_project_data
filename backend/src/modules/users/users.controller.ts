@@ -61,6 +61,12 @@ export async function deactivate(req: Request, res: Response, next: NextFunction
 export async function resetPassword(req: Request, res: Response, next: NextFunction) {
   try {
     const tempPassword = await usersService.resetPassword(req.params.id as string);
+    await logAudit(req, {
+      action: AuditAction.PASSWORD_CHANGED,
+      entity: 'user',
+      entityId: req.params.id as string,
+      payload: { resetBy: req.user!.id },
+    });
     res.json({ tempPassword });
   } catch (err) {
     next(err);
@@ -69,12 +75,13 @@ export async function resetPassword(req: Request, res: Response, next: NextFunct
 
 export async function deleteUser(req: Request, res: Response, next: NextFunction) {
   try {
+    const userId = req.params.id as string;
+    await usersService.deleteUser(userId);
     await logAudit(req, {
       action: AuditAction.USER_DELETED,
       entity: 'user',
-      entityId: req.params.id as string,
+      entityId: userId,
     });
-    await usersService.deleteUser(req.params.id as string);
     res.json({ message: 'User deleted' });
   } catch (err) {
     next(err);

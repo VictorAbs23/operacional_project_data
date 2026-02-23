@@ -7,8 +7,8 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/my-proposals', formsController.getClientProposals);
-router.get('/:accessId', formsController.getFormInstance);
-router.get('/slot/:slotId', formsController.getPassengerSlot);
-router.post('/slot/:slotId', formsController.savePassengerResponse);
+router.get('/slots/:slotId', formsController.getPassengerSlot);
+router.post('/slots/:slotId', formsController.savePassengerResponse);
+router.get('/instance/:accessId', formsController.getFormInstance);
 
 export default router;

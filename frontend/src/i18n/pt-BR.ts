@@ -50,6 +50,10 @@ export const ptBR: Record<string, string> = {
   'proposals.noEmail': 'E-mail do cliente ausente no Sales Log',
   'proposals.notConfirmed': 'Proposta nao confirmada',
   'proposals.dataMatrix': 'Matriz de Dados',
+  'proposals.seller': 'Vendedor',
+  'proposals.allGames': 'Todos os jogos',
+  'proposals.allHotels': 'Todos os hoteis',
+  'proposals.allSellers': 'Todos os vendedores',
 
   // Sync
   'sync.title': 'Sincronizacao com Google Sheets',
@@ -60,6 +64,8 @@ export const ptBR: Record<string, string> = {
   'sync.rowsUpserted': 'Linhas atualizadas',
   'sync.rowsSkipped': 'Linhas ignoradas',
   'sync.running': 'Em execucao...',
+  'sync.triggered': 'Sincronizacao iniciada',
+  'sync.failed': 'Falha na sincronizacao',
 
   // Users
   'users.title': 'Gestao de Usuarios',
@@ -161,6 +167,8 @@ export const ptBR: Record<string, string> = {
   'common.results': 'resultados',
   'common.prev': 'Anterior',
   'common.next': 'Proximo',
+  'common.yes': 'Sim',
+  'common.no': 'Nao',
   'common.copy': 'Copiar',
   'common.copied': 'Copiado!',
   'common.dropzone': 'Arraste e solte ou clique para enviar',
