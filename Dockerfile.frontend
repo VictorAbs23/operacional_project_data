@@ -1,0 +1,42 @@
+# ---------- Build stage ----------
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Copy root workspace config
+COPY package.json package-lock.json ./
+
+# Copy workspace package.json files
+COPY shared/package.json shared/package.json
+COPY frontend/package.json frontend/package.json
+
+# Install all dependencies
+RUN npm ci
+
+# Copy source code
+COPY shared/ shared/
+COPY frontend/ frontend/
+COPY tsconfig.base.json ./
+
+# Build shared first, then frontend
+RUN npm run build -w shared
+
+# Accept build-time API URL
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+RUN npm run build -w frontend
+
+# ---------- Production stage ----------
+FROM nginx:alpine AS runner
+
+# Copy nginx config template
+COPY frontend/nginx.conf /etc/nginx/templates/default.conf.template
+
+# Copy built frontend
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
+
+# Railway provides PORT env var; nginx:alpine auto-substitutes ${PORT} in templates
+ENV PORT=3000
+
+CMD ["nginx", "-g", "daemon off;"]

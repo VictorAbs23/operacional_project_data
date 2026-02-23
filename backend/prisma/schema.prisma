@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String
+  passwordHash       String   @map("password_hash")
+  role               String   @default("ADMIN")
+  isActive           Boolean  @default(true) @map("is_active")
+  mustChangePassword Boolean  @default(true) @map("must_change_password")
+  profilePhotoUrl    String?  @map("profile_photo_url")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  proposalAccess ClientProposalAccess[]
+  auditLogs      AuditLog[]
+
+  @@map("users")
+}
+
+model ClientProposalAccess {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  proposal     String
+  accessToken  String   @unique @map("access_token")
+  dispatchedAt DateTime @default(now()) @map("dispatched_at")
+  dispatchMode String   @map("dispatch_mode")
+  dispatchedBy String?  @map("dispatched_by")
+  deadline     DateTime?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user        User         @relation(fields: [userId], references: [id])
+  formInstance FormInstance?
+
+  @@unique([userId, proposal])
+  @@map("client_proposal_access")
+}
+
+model SalesOrder {
+  id         String   @id @default(cuid())
+  proposal   String
+  lineNumber Int      @map("line_number")
+
+  // Denormalized columns for filtering
+  status          String   @default("")
+  clientName      String   @default("") @map("client_name")
+  clientEmail     String   @default("") @map("client_email")
+  game            String   @default("")
+  hotel           String   @default("")
+  roomType        String   @default("") @map("room_type")
+  numberOfRooms   Int      @default(0) @map("number_of_rooms")
+  numberOfPax     Int      @default(0) @map("number_of_pax")
+  checkIn         String   @default("") @map("check_in")
+  checkOut        String   @default("") @map("check_out")
+  ticketCategory  String   @default("") @map("ticket_category")
+  seller          String   @default("")
+
+  // Full row data + change detection
+  rawData     Json     @map("raw_data")
+  rawHash     String   @map("raw_hash")
+  lastSyncedAt DateTime @default(now()) @map("last_synced_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([proposal, lineNumber], name: "proposal_line_unique")
+  @@index([proposal])
+  @@index([status])
+  @@index([clientEmail])
+  @@index([game])
+  @@index([hotel])
+  @@index([seller])
+  @@map("sales_orders")
+}
+
+model SyncLog {
+  id           String    @id @default(cuid())
+  startedAt    DateTime  @default(now()) @map("started_at")
+  finishedAt   DateTime? @map("finished_at")
+  status       String    @default("RUNNING")
+  rowsRead     Int       @default(0) @map("rows_read")
+  rowsUpserted Int       @default(0) @map("rows_upserted")
+  rowsSkipped  Int       @default(0) @map("rows_skipped")
+  error        String?
+
+  @@map("sync_logs")
+}
+
+model FormFieldDefinition {
+  id           String  @id @default(cuid())
+  key          String  @unique
+  labelPt      String  @map("label_pt")
+  labelEn      String  @map("label_en")
+  type         String
+  required     Boolean @default(false)
+  fillableBy   String  @map("fillable_by")
+  order        Int
+  options      Json?
+  placeholderPt String? @map("placeholder_pt")
+  placeholderEn String? @map("placeholder_en")
+
+  @@map("form_field_definitions")
+}
+
+model FormInstance {
+  id              String   @id @default(cuid())
+  proposal        String
+  accessId        String   @unique @map("access_id")
+  captureStatus   String   @default("AWAITING_FILL") @map("capture_status")
+  totalSlots      Int      @default(0) @map("total_slots")
+  filledSlots     Int      @default(0) @map("filled_slots")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  access         ClientProposalAccess @relation(fields: [accessId], references: [id])
+  passengerSlots PassengerSlot[]
+
+  @@index([proposal])
+  @@map("form_instances")
+}
+
+model PassengerSlot {
+  id             String   @id @default(cuid())
+  formInstanceId String   @map("form_instance_id")
+  roomLabel      String   @map("room_label")
+  slotIndex      Int      @map("slot_index")
+  status         String   @default("PENDING")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  formInstance FormInstance  @relation(fields: [formInstanceId], references: [id])
+  response     FormResponse?
+
+  @@map("passenger_slots")
+}
+
+model FormResponse {
+  id              String   @id @default(cuid())
+  passengerSlotId String   @unique @map("passenger_slot_id")
+  answers         Json
+  submittedBy     String?  @map("submitted_by")
+  submittedAt     DateTime @default(now()) @map("submitted_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  passengerSlot PassengerSlot @relation(fields: [passengerSlotId], references: [id])
+
+  @@map("form_responses")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  timestamp  DateTime @default(now())
+  userId     String?  @map("user_id")
+  userRole   String?  @map("user_role")
+  action     String
+  entity     String?
+  entityId   String?  @map("entity_id")
+  ipAddress  String?  @map("ip_address")
+  payload    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+  @@map("audit_logs")
+}

@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Barlow', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  code, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  ::selection {
+    background-color: rgba(21, 95, 151, 0.15);
+    color: #041628;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-500 text-white rounded-md px-4 py-2.5 font-semibold
+           hover:bg-primary-700 transition-all shadow-primary active:scale-[0.98]
+           disabled:bg-neutral-200 disabled:text-neutral-400 disabled:shadow-none disabled:cursor-not-allowed;
+  }
+
+  .btn-success {
+    @apply bg-accent-500 text-white rounded-md px-4 py-2.5 font-semibold
+           hover:bg-accent-700 transition-all shadow-accent active:scale-[0.98]
+           disabled:bg-neutral-200 disabled:text-neutral-400 disabled:shadow-none disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply bg-white text-primary-500 border border-primary-500 rounded-md px-4 py-2.5 font-semibold
+           hover:bg-primary-50 transition-all active:scale-[0.98]
+           disabled:border-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed;
+  }
+
+  .btn-destructive {
+    @apply bg-red-50 text-error border border-red-200 rounded-md px-4 py-2.5 font-semibold
+           hover:bg-red-100 transition-all active:scale-[0.98]
+           disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed;
+  }
+
+  .input-base {
+    @apply w-full border border-neutral-300 rounded-md px-3 py-2.5 text-base font-body
+           bg-white text-neutral-900
+           placeholder:text-neutral-400
+           focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/25
+           disabled:bg-neutral-50 disabled:border-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed
+           transition-all;
+  }
+
+  .card {
+    @apply bg-white rounded-lg border border-neutral-200 shadow-md p-4;
+  }
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out both;
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out both;
+}
