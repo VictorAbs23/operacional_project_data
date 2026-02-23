@@ -101,15 +101,22 @@ export async function runSync(): Promise<{ rowsRead: number; rowsUpserted: numbe
 
     return { rowsRead: rawRows.length, rowsUpserted, rowsSkipped, rowsErrored };
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    logger.error('Sync failed', { error: errorMessage });
+    const rawMessage = err instanceof Error ? err.message : 'Unknown error';
+    // Sanitize: strip local file paths and Prisma invocation noise for cleaner logs
+    const errorMessage = rawMessage
+      .replace(/\n/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/Invalid `.*?` invocation in\s*\S+/i, '')
+      .replace(/\/\S+\.(ts|js):\d+:\d+/g, '')
+      .trim();
+    logger.error('Sync failed', { error: rawMessage });
 
     await prisma.syncLog.update({
       where: { id: syncLog.id },
       data: {
         status: 'ERROR',
         finishedAt: new Date(),
-        error: errorMessage,
+        error: errorMessage.slice(0, 500),
       },
     });
 

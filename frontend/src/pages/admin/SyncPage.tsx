@@ -7,8 +7,32 @@ import { Table } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 import { Spinner } from '../../components/ui/Spinner';
 import { toast } from '../../components/ui/Toast';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
 import dayjs from 'dayjs';
+
+function ErrorCell({ error }: { error: string }) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Extract the meaningful part of the error (after the last arrow or "Can't reach...")
+  const short = error.includes("Can't reach database")
+    ? "Can't reach database server"
+    : error.length > 80
+      ? error.slice(0, 80) + '…'
+      : error;
+
+  return (
+    <div className="max-w-[260px]">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-1.5 text-left text-xs text-error hover:text-red-700 transition-colors"
+      >
+        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+        <span className={expanded ? '' : 'line-clamp-2'}>{expanded ? error : short}</span>
+      </button>
+    </div>
+  );
+}
 
 export function SyncPage() {
   const t = useLanguageStore((s) => s.t);
@@ -44,7 +68,7 @@ export function SyncPage() {
     { key: 'rowsRead', header: t('sync.rowsRead') },
     { key: 'rowsUpserted', header: t('sync.rowsUpserted') },
     { key: 'rowsSkipped', header: t('sync.rowsSkipped') },
-    { key: 'error', header: t('common.error'), render: (item: any) => item.error ? <span className="text-error text-xs">{item.error}</span> : '—' },
+    { key: 'error', header: t('common.error'), render: (item: any) => item.error ? <ErrorCell error={item.error} /> : '—' },
   ];
 
   return (
