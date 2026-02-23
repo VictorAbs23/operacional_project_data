@@ -14,6 +14,7 @@ interface ProposalFilters {
 export async function listProposals(filters: ProposalFilters): Promise<PaginatedResponse<ProposalSummary>> {
   const page = Math.max(1, Math.floor(filters.page || 1));
   const pageSize = Math.min(100, Math.max(1, Math.floor(filters.pageSize || 20)));
+  const skip = (page - 1) * pageSize;
 
   const where: Record<string, unknown> = {};
   if (filters.game) where.game = filters.game;
@@ -27,16 +28,89 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
     ];
   }
 
-  // Query 1: Fetch all distinct proposals matching filters
+  const selectFields = {
+    id: true,
+    proposal: true,
+    clientName: true,
+    clientEmail: true,
+    game: true,
+    hotel: true,
+    status: true,
+  } as const;
+
+  // FAST PATH: no captureStatus filter → paginate at DB level
+  if (!filters.status) {
+    const [paginatedProposals, totalGroups] = await Promise.all([
+      prisma.salesOrder.findMany({
+        where: where as any,
+        distinct: ['proposal'],
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+        select: selectFields,
+      }),
+      // Count distinct proposals (lightweight - only fetches proposal strings)
+      prisma.salesOrder.findMany({
+        where: where as any,
+        distinct: ['proposal'],
+        select: { proposal: true },
+      }),
+    ]);
+
+    const total = totalGroups.length;
+    const proposalCodes = paginatedProposals.map((o) => o.proposal);
+
+    // Fetch accesses ONLY for the current page (small batch)
+    const accesses = proposalCodes.length > 0
+      ? await prisma.clientProposalAccess.findMany({
+          where: { proposal: { in: proposalCodes } },
+          include: { formInstance: true },
+          orderBy: { dispatchedAt: 'desc' },
+        })
+      : [];
+
+    const accessMap = new Map<string, typeof accesses[number]>();
+    for (const access of accesses) {
+      if (!accessMap.has(access.proposal)) {
+        accessMap.set(access.proposal, access);
+      }
+    }
+
+    const data: ProposalSummary[] = paginatedProposals.map((order) => {
+      const access = accessMap.get(order.proposal);
+      const fi = access?.formInstance;
+      return {
+        id: order.id,
+        proposal: order.proposal,
+        clientName: order.clientName,
+        clientEmail: order.clientEmail,
+        game: order.game,
+        hotel: order.hotel,
+        status: order.status,
+        captureStatus: fi?.captureStatus || 'NOT_DISPATCHED',
+        totalSlots: fi?.totalSlots || 0,
+        filledSlots: fi?.filledSlots || 0,
+        progressPercent: fi && fi.totalSlots > 0
+          ? Math.round((fi.filledSlots / fi.totalSlots) * 100)
+          : 0,
+        deadline: access?.deadline?.toISOString() || null,
+        dispatchedAt: access?.dispatchedAt?.toISOString() || null,
+      };
+    });
+
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  }
+
+  // SLOW PATH: captureStatus filter requires cross-table join → in-memory pagination
   const allProposals = await prisma.salesOrder.findMany({
     where: where as any,
     distinct: ['proposal'],
     orderBy: { createdAt: 'desc' },
+    select: selectFields,
   });
 
   const proposalCodes = allProposals.map((o) => o.proposal);
 
-  // Query 2: Batch fetch ALL accesses + form instances in a single query
   const allAccesses = proposalCodes.length > 0
     ? await prisma.clientProposalAccess.findMany({
         where: { proposal: { in: proposalCodes } },
@@ -45,7 +119,6 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
       })
     : [];
 
-  // Build a Map: proposal code -> most recent access (first in desc order)
   const accessMap = new Map<string, typeof allAccesses[number]>();
   for (const access of allAccesses) {
     if (!accessMap.has(access.proposal)) {
@@ -53,15 +126,13 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
     }
   }
 
-  // Assemble results in memory (no more N+1)
   const allResults: ProposalSummary[] = [];
-
   for (const order of allProposals) {
     const access = accessMap.get(order.proposal);
     const fi = access?.formInstance;
     const captureStatus = fi?.captureStatus || 'NOT_DISPATCHED';
 
-    if (filters.status && captureStatus !== filters.status) continue;
+    if (captureStatus !== filters.status) continue;
 
     allResults.push({
       id: order.id,
@@ -83,7 +154,6 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
   }
 
   const total = allResults.length;
-  const skip = (page - 1) * pageSize;
   const paginatedData = allResults.slice(skip, skip + pageSize);
 
   return {
