@@ -62,6 +62,8 @@ model SalesOrder {
   checkOut        String   @default("") @map("check_out")
   ticketCategory  String   @default("") @map("ticket_category")
   seller          String   @default("")
+  company         String   @default("") @map("company")
+  cellPhone       String   @default("") @map("cell_phone")
 
   // Full row data + change detection
   rawData     Json     @map("raw_data")

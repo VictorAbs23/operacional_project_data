@@ -15,6 +15,11 @@ const statusMap: Record<string, { variant: 'completed' | 'inProgress' | 'notStar
   CANCELED: { variant: 'closed', key: 'status.canceled' },
   PENDING: { variant: 'notStarted', key: 'status.pending' },
   FILLED: { variant: 'completed', key: 'status.completed' },
+  PROCESSING: { variant: 'inProgress', key: 'status.processing' },
+  'ON HOLD': { variant: 'draft', key: 'status.onHold' },
+  'TO BE DELETED': { variant: 'expired', key: 'status.toBeDeleted' },
+  CANCELLED: { variant: 'closed', key: 'status.canceled' },
+  OPTION: { variant: 'info', key: 'status.option' },
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {

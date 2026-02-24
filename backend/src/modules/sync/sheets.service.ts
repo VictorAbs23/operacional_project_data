@@ -67,6 +67,8 @@ export function mapRowToSalesOrder(row: SheetRow, lineNumber: number): SalesOrde
     checkOut: get('CHECK OUT') || get('CHECK_OUT'),
     ticketCategory: get('TICKET CAT') || get('TICKET CATEGORY'),
     seller: get('SELLER'),
+    company: get('COMPANY') || get('OFFICE'),
+    cellPhone: get('CELL PHONE') || get('CELLPHONE'),
     rawData: row as Record<string, unknown>,
   };
 }

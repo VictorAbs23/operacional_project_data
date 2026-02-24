@@ -84,13 +84,23 @@ export function ProposalsPage() {
     },
     { key: 'clientName', header: t('proposals.client') },
     { key: 'game', header: t('proposals.game') },
-    { key: 'hotel', header: t('proposals.hotel') },
+    {
+      key: 'hotel',
+      header: t('proposals.hotel'),
+      render: (item: any) => item.hotel || <span className="text-neutral-400 italic">{t('proposals.noHotel')}</span>,
+    },
+    {
+      key: 'saleStatus',
+      header: t('proposals.saleStatus'),
+      render: (item: any) => <StatusBadge status={item.status} />,
+    },
     {
       key: 'forms',
       header: t('proposals.forms'),
-      render: (item: any) => (
-        <span className="text-sm font-medium">{item.filledSlots} / {item.totalSlots}</span>
-      ),
+      render: (item: any) => {
+        const total = item.totalSlots > 0 ? item.totalSlots : item.totalPax;
+        return <span className="text-sm font-medium">{item.filledSlots} / {total}</span>;
+      },
     },
     {
       key: 'progress',
@@ -102,8 +112,8 @@ export function ProposalsPage() {
       ),
     },
     {
-      key: 'status',
-      header: t('proposals.status'),
+      key: 'captureStatus',
+      header: t('proposals.captureStatus'),
       render: (item: any) => <StatusBadge status={item.captureStatus} />,
     },
   ];

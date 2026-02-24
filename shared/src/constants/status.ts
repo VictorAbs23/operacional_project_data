@@ -3,6 +3,10 @@ export enum ProposalStatus {
   CANCELED = 'CANCELED',
   PENDING = 'PENDING',
   OPTION = 'OPTION',
+  PROCESSING = 'PROCESSING',
+  ON_HOLD = 'ON HOLD',
+  TO_BE_DELETED = 'TO BE DELETED',
+  CANCELLED = 'CANCELLED',
 }
 
 export enum CaptureStatus {

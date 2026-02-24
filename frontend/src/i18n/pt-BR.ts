@@ -188,6 +188,10 @@ export const ptBR: Record<string, string> = {
   'status.confirmed': 'Confirmada',
   'status.canceled': 'Cancelada',
   'status.pending': 'Pendente',
+  'status.processing': 'Processando',
+  'status.onHold': 'Em Espera',
+  'status.toBeDeleted': 'A Deletar',
+  'status.option': 'Opcao',
 
   // Data Matrix
   'matrix.title': 'Matriz de Dados',
@@ -227,6 +231,15 @@ export const ptBR: Record<string, string> = {
   'proposals.tempPassword': 'Senha',
 
   // Client portal
+  'proposals.company': 'Empresa',
+  'proposals.phone': 'Telefone',
+  'proposals.pax': 'PAX',
+  'proposals.noHotel': 'Sem hospedagem',
+  'proposals.saleStatus': 'Status Venda',
+  'proposals.captureStatus': 'Captacao',
+  'proposals.totalForms': 'Total Fichas',
+  'proposals.email': 'E-mail',
+
   'client.welcome': 'Bem-vindo',
   'client.portalTitle': 'Portal do Cliente',
   'client.fieldOf': 'Campo',

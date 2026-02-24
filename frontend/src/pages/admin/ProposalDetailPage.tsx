@@ -13,7 +13,7 @@ import { toast } from '../../components/ui/Toast';
 import { motion } from 'framer-motion';
 import {
   Send, Link2, Grid3X3, Copy, Check,
-  Download, ChevronRight, Calendar,
+  Download, ChevronRight, Calendar, Phone, Mail,
   Users, Hotel, Gamepad2, CheckCircle2, XCircle,
 } from 'lucide-react';
 
@@ -144,24 +144,42 @@ export function ProposalDetailPage() {
           <h1 className="text-3xl font-display font-bold text-neutral-900">
             {t('proposals.proposal')} {proposal.proposal}
           </h1>
-          <p className="text-neutral-500 mt-1">{proposal.clientName} &mdash; {proposal.game} &mdash; {proposal.hotel}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-neutral-500">
+            <span>{proposal.clientName}</span>
+            {proposal.seller && <span>{t('proposals.seller')}: {proposal.seller}</span>}
+            {proposal.company && <span>{t('proposals.company')}: {proposal.company}</span>}
+            {proposal.clientEmail && (
+              <a href={`mailto:${proposal.clientEmail}`} className="inline-flex items-center gap-1 hover:text-primary-500 transition-colors">
+                <Mail className="h-3.5 w-3.5" />{proposal.clientEmail}
+              </a>
+            )}
+            {proposal.cellPhone && (
+              <a href={`tel:${proposal.cellPhone.replace(/[^+\d]/g, '')}`} className="inline-flex items-center gap-1 hover:text-primary-500 transition-colors">
+                <Phone className="h-3.5 w-3.5" />{proposal.cellPhone}
+              </a>
+            )}
+          </div>
         </div>
         <StatusBadge status={proposal.captureStatus} />
       </div>
 
       {/* Info cards with icons */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <Card className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary-50"><Gamepad2 className="h-5 w-5 text-primary-500" /></div>
           <div><p className="text-xs text-neutral-500">{t('proposals.game')}</p><p className="font-semibold text-sm">{proposal.game}</p></div>
         </Card>
         <Card className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-amber-50"><Hotel className="h-5 w-5 text-amber-600" /></div>
-          <div><p className="text-xs text-neutral-500">{t('proposals.hotel')}</p><p className="font-semibold text-sm">{proposal.hotel}</p></div>
+          <div><p className="text-xs text-neutral-500">{t('proposals.hotel')}</p><p className="font-semibold text-sm">{proposal.hotel || <span className="text-neutral-400 italic">{t('proposals.noHotel')}</span>}</p></div>
+        </Card>
+        <Card className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-violet-50"><Users className="h-5 w-5 text-violet-500" /></div>
+          <div><p className="text-xs text-neutral-500">{t('proposals.pax')}</p><p className="font-semibold text-sm">{proposal.totalPax}</p></div>
         </Card>
         <Card className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-accent-50"><Users className="h-5 w-5 text-accent-500" /></div>
-          <div><p className="text-xs text-neutral-500">{t('proposals.forms')}</p><p className="font-semibold text-sm">{proposal.filledSlots} / {proposal.totalSlots}</p></div>
+          <div><p className="text-xs text-neutral-500">{t('proposals.forms')}</p><p className="font-semibold text-sm">{proposal.filledSlots} / {proposal.totalPax > 0 && proposal.totalSlots === 0 ? proposal.totalPax : proposal.totalSlots}</p></div>
         </Card>
         <Card className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-neutral-100"><Calendar className="h-5 w-5 text-neutral-500" /></div>

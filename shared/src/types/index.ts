@@ -37,6 +37,8 @@ export interface SalesOrderRow {
   checkOut: string;
   ticketCategory: string;
   seller: string;
+  company: string;
+  cellPhone: string;
   rawData: Record<string, unknown>;
 }
 
@@ -63,6 +65,10 @@ export interface ProposalSummary {
   totalSlots: number;
   filledSlots: number;
   progressPercent: number;
+  seller: string;
+  company: string;
+  cellPhone: string;
+  totalPax: number;
   deadline: string | null;
   dispatchedAt: string | null;
 }

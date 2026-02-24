@@ -188,6 +188,10 @@ export const en: Record<string, string> = {
   'status.confirmed': 'Confirmed',
   'status.canceled': 'Canceled',
   'status.pending': 'Pending',
+  'status.processing': 'Processing',
+  'status.onHold': 'On Hold',
+  'status.toBeDeleted': 'To Be Deleted',
+  'status.option': 'Option',
 
   // Data Matrix
   'matrix.title': 'Data Matrix',
@@ -227,6 +231,15 @@ export const en: Record<string, string> = {
   'proposals.tempPassword': 'Password',
 
   // Client portal
+  'proposals.company': 'Company',
+  'proposals.phone': 'Phone',
+  'proposals.pax': 'PAX',
+  'proposals.noHotel': 'No accommodation',
+  'proposals.saleStatus': 'Sale Status',
+  'proposals.captureStatus': 'Capture',
+  'proposals.totalForms': 'Total Forms',
+  'proposals.email': 'Email',
+
   'client.welcome': 'Welcome',
   'client.portalTitle': 'Client Portal',
   'client.fieldOf': 'Field',

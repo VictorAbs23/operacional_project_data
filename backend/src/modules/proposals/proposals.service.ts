@@ -36,6 +36,10 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
     game: true,
     hotel: true,
     status: true,
+    seller: true,
+    company: true,
+    cellPhone: true,
+    numberOfPax: true,
   } as const;
 
   // FAST PATH: no captureStatus filter → paginate at DB level
@@ -59,6 +63,16 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
 
     const total = totalGroups.length;
     const proposalCodes = paginatedProposals.map((o) => o.proposal);
+
+    // Aggregate totalPax per proposal
+    const paxAgg = proposalCodes.length > 0
+      ? await prisma.salesOrder.groupBy({
+          by: ['proposal'],
+          where: { proposal: { in: proposalCodes } },
+          _sum: { numberOfPax: true },
+        })
+      : [];
+    const paxMap = new Map(paxAgg.map((r) => [r.proposal, r._sum.numberOfPax || 0]));
 
     // Fetch accesses ONLY for the current page (small batch)
     const accesses = proposalCodes.length > 0
@@ -87,6 +101,10 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
         game: order.game,
         hotel: order.hotel,
         status: order.status,
+        seller: order.seller,
+        company: order.company,
+        cellPhone: order.cellPhone,
+        totalPax: paxMap.get(order.proposal) || 0,
         captureStatus: fi?.captureStatus || 'NOT_DISPATCHED',
         totalSlots: fi?.totalSlots || 0,
         filledSlots: fi?.filledSlots || 0,
@@ -126,6 +144,16 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
     }
   }
 
+  // Aggregate totalPax per proposal (slow path)
+  const paxAggSlow = proposalCodes.length > 0
+    ? await prisma.salesOrder.groupBy({
+        by: ['proposal'],
+        where: { proposal: { in: proposalCodes } },
+        _sum: { numberOfPax: true },
+      })
+    : [];
+  const paxMapSlow = new Map(paxAggSlow.map((r) => [r.proposal, r._sum.numberOfPax || 0]));
+
   const allResults: ProposalSummary[] = [];
   for (const order of allProposals) {
     const access = accessMap.get(order.proposal);
@@ -142,6 +170,10 @@ export async function listProposals(filters: ProposalFilters): Promise<Paginated
       game: order.game,
       hotel: order.hotel,
       status: order.status,
+      seller: order.seller,
+      company: order.company,
+      cellPhone: order.cellPhone,
+      totalPax: paxMapSlow.get(order.proposal) || 0,
       captureStatus,
       totalSlots: fi?.totalSlots || 0,
       filledSlots: fi?.filledSlots || 0,
@@ -325,13 +357,20 @@ export async function getProposalById(id: string): Promise<ProposalSummary | nul
   const order = await prisma.salesOrder.findUnique({ where: { id } });
   if (!order) return null;
 
-  const access = await prisma.clientProposalAccess.findFirst({
-    where: { proposal: order.proposal },
-    include: { formInstance: true },
-    orderBy: { dispatchedAt: 'desc' },
-  });
+  const [access, allLines] = await Promise.all([
+    prisma.clientProposalAccess.findFirst({
+      where: { proposal: order.proposal },
+      include: { formInstance: true },
+      orderBy: { dispatchedAt: 'desc' },
+    }),
+    prisma.salesOrder.findMany({
+      where: { proposal: order.proposal },
+      select: { numberOfPax: true },
+    }),
+  ]);
 
   const fi = access?.formInstance;
+  const totalPax = allLines.reduce((sum, l) => sum + l.numberOfPax, 0);
 
   return {
     id: order.id,
@@ -341,6 +380,10 @@ export async function getProposalById(id: string): Promise<ProposalSummary | nul
     game: order.game,
     hotel: order.hotel,
     status: order.status,
+    seller: order.seller,
+    company: order.company,
+    cellPhone: order.cellPhone,
+    totalPax,
     captureStatus: fi?.captureStatus || 'NOT_DISPATCHED',
     totalSlots: fi?.totalSlots || 0,
     filledSlots: fi?.filledSlots || 0,
