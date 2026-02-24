@@ -19,10 +19,26 @@ model User {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
-  proposalAccess ClientProposalAccess[]
-  auditLogs      AuditLog[]
+  proposalAccess     ClientProposalAccess[]
+  auditLogs          AuditLog[]
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model ClientProposalAccess {
@@ -61,6 +77,8 @@ model SalesOrder {
   checkOut        String   @default("") @map("check_out")
   ticketCategory  String   @default("") @map("ticket_category")
   seller          String   @default("")
+  company         String   @default("")
+  cellPhone       String   @default("") @map("cell_phone")
 
   // Full row data + change detection
   rawData     Json     @map("raw_data")

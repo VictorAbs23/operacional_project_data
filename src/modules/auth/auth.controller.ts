@@ -43,3 +43,31 @@ export async function me(req: Request, res: Response, next: NextFunction) {
     next(err);
   }
 }
+
+export async function forgotPassword(req: Request, res: Response, _next: NextFunction) {
+  try {
+    await authService.requestPasswordReset(req.body.email);
+  } catch {
+    // Swallow all errors — anti-enumeration: never leak whether email exists
+  }
+  await logAudit(req, {
+    action: AuditAction.PASSWORD_RESET_REQUESTED,
+    payload: { email: req.body.email },
+  });
+  // Always return 200 with generic message
+  res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
+}
+
+export async function resetPassword(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = await authService.resetPassword(req.body.token, req.body.newPassword);
+    await logAudit(req, {
+      action: AuditAction.PASSWORD_RESET_COMPLETED,
+      entity: 'user',
+      entityId: userId,
+    });
+    res.json({ message: 'Password has been reset successfully.' });
+  } catch (err) {
+    next(err);
+  }
+}

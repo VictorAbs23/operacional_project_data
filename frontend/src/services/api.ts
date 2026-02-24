@@ -17,7 +17,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isPublicAuthRequest = ['/auth/login', '/auth/forgot-password', '/auth/reset-password'].some(
+      (path) => error.config?.url?.startsWith(path)
+    );
+    if (error.response?.status === 401 && !isPublicAuthRequest) {
       useAuthStore.getState().logout();
       window.location.replace('/login');
     }

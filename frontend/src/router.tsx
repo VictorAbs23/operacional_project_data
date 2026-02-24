@@ -5,6 +5,8 @@ import { AdminLayout } from './components/layout/AdminLayout';
 import { ClientLayout } from './components/layout/ClientLayout';
 import { LoginPage } from './pages/auth/LoginPage';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { DashboardPage } from './pages/admin/DashboardPage';
 import { ProposalsPage } from './pages/admin/ProposalsPage';
 import { SyncPage } from './pages/admin/SyncPage';
@@ -25,6 +27,8 @@ export function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/change-password" element={
         <ProtectedRoute>
           <ChangePasswordPage />

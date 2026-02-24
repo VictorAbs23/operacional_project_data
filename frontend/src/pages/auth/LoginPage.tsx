@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import axios from 'axios';
 import { loginSchema, type LoginInput } from '@absolutsport/shared';
 import { authApi } from '../../services/auth.api';
 import { useAuthStore } from '../../stores/authStore';
@@ -38,8 +39,18 @@ export function LoginPage() {
       } else {
         navigate('/admin');
       }
-    } catch {
-      setError(t('auth.login.error'));
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 429) {
+          setError(t('auth.login.rateLimited'));
+        } else if (err.response?.status === 401) {
+          setError(t('auth.login.error'));
+        } else {
+          setError(t('auth.login.networkError'));
+        }
+      } else {
+        setError(t('auth.login.networkError'));
+      }
     }
   };
 
@@ -102,6 +113,15 @@ export function LoginPage() {
                 {t('auth.login')}
               </Button>
             </form>
+
+            <div className="mt-4 text-center">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-primary-500 hover:text-primary-700 transition-colors"
+              >
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
           </div>
 
           <p className="text-center text-xs text-neutral-400 mt-6 font-display">
