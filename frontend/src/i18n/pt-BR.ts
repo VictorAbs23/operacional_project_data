@@ -54,6 +54,9 @@ export const ptBR: Record<string, string> = {
   'proposals.allGames': 'Todos os jogos',
   'proposals.allHotels': 'Todos os hoteis',
   'proposals.allSellers': 'Todos os vendedores',
+  'proposals.clearFilters': 'Limpar filtros',
+  'proposals.tryDifferentFilters': 'Tente ajustar os filtros ou a busca',
+  'proposals.searchPlaceholder': 'Buscar por proposta, nome ou e-mail...',
 
   // Sync
   'sync.title': 'Sincronizacao com Google Sheets',

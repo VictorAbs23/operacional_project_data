@@ -54,6 +54,9 @@ export const en: Record<string, string> = {
   'proposals.allGames': 'All games',
   'proposals.allHotels': 'All hotels',
   'proposals.allSellers': 'All sellers',
+  'proposals.clearFilters': 'Clear filters',
+  'proposals.tryDifferentFilters': 'Try adjusting the filters or search query',
+  'proposals.searchPlaceholder': 'Search by proposal, name or email...',
 
   // Sync
   'sync.title': 'Google Sheets Sync',

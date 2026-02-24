@@ -23,9 +23,14 @@ export async function list(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function filterOptions(_req: Request, res: Response, next: NextFunction) {
+export async function filterOptions(req: Request, res: Response, next: NextFunction) {
   try {
-    const options = await proposalsService.getFilterOptions();
+    const filters = {
+      game: (req.query.game as string) || undefined,
+      hotel: (req.query.hotel as string) || undefined,
+      seller: (req.query.seller as string) || undefined,
+    };
+    const options = await proposalsService.getFilterOptions(filters);
     res.json(options);
   } catch (err) {
     next(err);

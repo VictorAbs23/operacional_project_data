@@ -279,15 +279,44 @@ export async function getProposalMatrix(id: string): Promise<MatrixRow[]> {
   return rows;
 }
 
-export async function getFilterOptions(): Promise<{ games: string[]; hotels: string[]; sellers: string[] }> {
-  const orders = await prisma.salesOrder.findMany({
-    distinct: ['proposal'],
-    select: { game: true, hotel: true, seller: true },
-  });
+export async function getFilterOptions(
+  filters: { game?: string; hotel?: string; seller?: string } = {},
+): Promise<{ games: string[]; hotels: string[]; sellers: string[] }> {
+  // Each dimension is filtered by the OTHER active filters,
+  // so the user only sees options that would return results.
+  const baseWhere: Record<string, string> = {};
+  if (filters.game) baseWhere.game = filters.game;
+  if (filters.hotel) baseWhere.hotel = filters.hotel;
+  if (filters.seller) baseWhere.seller = filters.seller;
 
-  const games = [...new Set(orders.map((o) => o.game).filter(Boolean))].sort();
-  const hotels = [...new Set(orders.map((o) => o.hotel).filter(Boolean))].sort();
-  const sellers = [...new Set(orders.map((o) => o.seller).filter(Boolean))].sort();
+  // For games: filter by hotel + seller (exclude game itself)
+  const { game: _g, ...whereForGames } = baseWhere;
+  // For hotels: filter by game + seller (exclude hotel itself)
+  const { hotel: _h, ...whereForHotels } = baseWhere;
+  // For sellers: filter by game + hotel (exclude seller itself)
+  const { seller: _s, ...whereForSellers } = baseWhere;
+
+  const [gamesRows, hotelsRows, sellersRows] = await Promise.all([
+    prisma.salesOrder.findMany({
+      where: whereForGames,
+      distinct: ['proposal'],
+      select: { game: true },
+    }),
+    prisma.salesOrder.findMany({
+      where: whereForHotels,
+      distinct: ['proposal'],
+      select: { hotel: true },
+    }),
+    prisma.salesOrder.findMany({
+      where: whereForSellers,
+      distinct: ['proposal'],
+      select: { seller: true },
+    }),
+  ]);
+
+  const games = [...new Set(gamesRows.map((o) => o.game).filter(Boolean))].sort();
+  const hotels = [...new Set(hotelsRows.map((o) => o.hotel).filter(Boolean))].sort();
+  const sellers = [...new Set(sellersRows.map((o) => o.seller).filter(Boolean))].sort();
 
   return { games, hotels, sellers };
 }
