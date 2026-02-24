@@ -7,9 +7,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
+  variant?: 'admin' | 'client';
 }
 
-export function Header({ onMenuToggle }: HeaderProps) {
+export function Header({ onMenuToggle, variant = 'admin' }: HeaderProps) {
   const { user, logout } = useAuthStore();
   const t = useLanguageStore((s) => s.t);
   const navigate = useNavigate();
@@ -19,24 +20,26 @@ export function Header({ onMenuToggle }: HeaderProps) {
     navigate('/login');
   };
 
+  const isClient = variant === 'client';
+
   return (
-    <header className="h-14 bg-white border-b border-neutral-200 flex items-center justify-between px-4 lg:px-8">
+    <header className={`${isClient ? 'h-16 border-b-2 border-primary-500' : 'h-14 border-b border-neutral-200'} bg-white flex items-center justify-between px-4 lg:px-8`}>
       {/* Mobile: hamburger + logo */}
-      <div className="flex items-center gap-3 lg:hidden">
+      <div className={`flex items-center gap-3 ${isClient ? '' : 'lg:hidden'}`}>
         {onMenuToggle && (
-          <button onClick={onMenuToggle} className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors">
+          <button onClick={onMenuToggle} className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors lg:hidden">
             <Menu className="h-5 w-5 text-neutral-700" />
           </button>
         )}
         <img
           src="/Logo_Absolut_Sport_Preto_e_Azul.svg"
           alt="AbsolutSport"
-          className="h-6"
+          className={isClient ? 'h-8' : 'h-6'}
         />
       </div>
 
-      {/* Desktop: empty left side (logo is in sidebar) */}
-      <div className="hidden lg:block" />
+      {/* Desktop: empty left side (logo is in sidebar) — admin only */}
+      {!isClient && <div className="hidden lg:block" />}
 
       {/* Right controls */}
       <div className="flex items-center gap-3">

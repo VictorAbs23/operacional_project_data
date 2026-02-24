@@ -243,4 +243,10 @@ export const ptBR: Record<string, string> = {
   'client.welcome': 'Bem-vindo',
   'client.portalTitle': 'Portal do Cliente',
   'client.fieldOf': 'Campo',
+
+  // Client form sections
+  'client.section.personal': 'Dados Pessoais',
+  'client.section.documents': 'Documentacao',
+  'client.section.contact': 'Contato',
+  'client.section.preferences': 'Preferencias e Foto',
 };

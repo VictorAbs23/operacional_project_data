@@ -77,6 +77,15 @@
   .card {
     @apply bg-white rounded-lg border border-neutral-200 shadow-md p-4;
   }
+
+  .client-hero-gradient {
+    @apply bg-gradient-to-br from-primary-700 via-primary-500 to-primary-700;
+  }
+
+  .card-interactive {
+    @apply bg-white rounded-xl border border-neutral-200 shadow-md
+           hover:shadow-lg hover:border-primary-300 transition-all cursor-pointer;
+  }
 }
 
 /* Animations */

@@ -243,4 +243,10 @@ export const en: Record<string, string> = {
   'client.welcome': 'Welcome',
   'client.portalTitle': 'Client Portal',
   'client.fieldOf': 'Field',
+
+  // Client form sections
+  'client.section.personal': 'Personal Information',
+  'client.section.documents': 'Documentation',
+  'client.section.contact': 'Contact',
+  'client.section.preferences': 'Preferences & Photo',
 };
